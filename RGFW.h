@@ -1513,6 +1513,16 @@ RGFWDEF void RGFW_getMouseScroll(float* x, float* y);
  * @param Y [OUTPUT] a pointer for the output Y vector value
 */
 RGFWDEF void RGFW_getMouseVector(float* x, float* y);
+
+/**!
+ * @brief TODO
+*/
+RGFWDEF void RGFW_setCompositionWindows(RGFW_window* win, int x, int y);
+
+/**!
+ * @brief TODO
+*/
+RGFWDEF void RGFW_disableCompositionWindows(RGFW_window* win);
 /** @} */
 
 /**!
@@ -4099,6 +4109,36 @@ void RGFW_getMouseVector(float* x, float* y) {
 	RGFW_ASSERT(_RGFW != NULL);
 	if (x) *x = _RGFW->vectorX;
 	if (y) *y = _RGFW->vectorY;
+}
+
+void RGFW_setCompositionWindows(RGFW_window* win, int x, int y) {
+#ifdef RGFW_WINDOWS
+	HWND hWnd = RGFW_window_getHWND(win);
+	HIMC hIMC = ImmGetContext(hWnd);
+
+	ImmAssociateContextEx(hWnd, hIMC, IACE_DEFAULT);
+	COMPOSITIONFORM cf = {};
+	cf.dwStyle = CFS_POINT;
+	cf.ptCurrentPos.x = x;
+	cf.ptCurrentPos.y = y;
+	ImmSetCompositionWindow(hIMC, &cf);
+
+	ImmReleaseContext(hWnd, hIMC);
+#else
+#error "TODO: IME unsupported on platforms other than Windows"
+#endif
+}
+
+void RGFW_disableCompositionWindows(RGFW_window* win) {
+#ifdef RGFW_WINDOWS
+	HWND hWnd = RGFW_window_getHWND(win);
+	HIMC hIMC = ImmGetContext(hWnd);
+
+	ImmAssociateContextEx(hWnd, NULL, 0);
+	ImmReleaseContext(hWnd, hIMC);
+#else
+#error "TODO: IME unsupported on platforms other than Windows"
+#endif
 }
 
 RGFW_bool RGFW_window_didMouseLeave(RGFW_window* win) { return _RGFW->windowState.winLeave == win && _RGFW->windowState.mouseLeave; }
